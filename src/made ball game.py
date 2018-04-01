@@ -28,8 +28,12 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.speed)
         if self.rect.left < 0 or self.rect.right > 640:
             self.speed[0] = - self.speed[0]
-        if self.rect.top < 0 or self.rect.bottom > 480:
+        if self.rect.top < 0:
             self.speed[1] = - self.speed[1]
+        if self.rect.bottom > 480:
+            print('game over')
+
+    #           sys.exit()
 
     def conflict(self):
         self.conflictCount = self.conflictCount - 1
@@ -59,43 +63,73 @@ def animate(group):
     pygame.time.delay(20)
 
 
+def ballgroup(group):
+    c = 0
+
+    for x in range(2):
+        for y in range(7):
+            a = randint(0, 1)
+            speed = [0, 0]
+            if a == 0:
+                conflictCount = randint(1, 2)
+                location = [90 * y + 10, 80 * x + 10]
+
+                ball = Ball(speed, location, conflictCount)
+                screen.blit(ball.image, ball.rect)
+
+                group.add(ball)
+                if conflictCount == 1:
+                    c = c + 1
+                if conflictCount == 2:
+                    c = c + 2
+    pygame.time.delay(1000)
+
+    return c
+
+
+def pikachuball():
+    screen.fill([255, 255, 255])
+    speed = [0, 0]
+    location = 320, 380
+    pikachu = Ball(speed, location, 0, 'pikachu.png')
+    screen.blit(pikachu.image, pikachu.rect)
+
+    pygame.display.flip()
+    return pikachu
+
+
+def joohanball():
+    speed = [10, 5]
+    location = 0, 170
+    joohanball = Ball(speed, location, 0, 'ball.png')
+    screen.blit(joohanball.image, joohanball.rect)
+    return joohanball
+
+
 pygame.init()
 screen = pygame.display.set_mode([640, 480])
-screen.fill([255, 255, 255])
-
-speed = [0, 0]
-location = 320, 380
-pikachu = Ball(speed, location, 0, 'pikachu.png')
-screen.blit(pikachu.image, pikachu.rect)
-
-speed = [10, 5]
-location = 0, 170
-joohanball = Ball(speed, location, 0, 'ball.png')
-screen.blit(joohanball.image, joohanball.rect)
 group = pygame.sprite.Group()
-
-for x in range(2):
-    for y in range(7):
-        a = randint(0, 1)
-        speed = [0, 0]
-        if a == 0:
-            conflictCount = randint(1, 2)
-            location = [90 * y + 10, 80 * x + 10]
-
-            ball = Ball(speed, location, conflictCount)
-            screen.blit(ball.image, ball.rect)
-
-            group.add(ball)
-
-pygame.display.flip()
-
+pikachu = pikachuball()
+joohanball = joohanball()
+c = ballgroup(group)
+pygame.key.set_repeat(100, 50)
 while True:
     screen.fill([255, 255, 255])
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        elif event.type == pygame.MOUSEMOTION:
-            pikachu.rect.centerx = event.pos[0]
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                pikachu.rect.centerx = pikachu.rect.centerx + 10
+            if event.key == pygame.K_LEFT:
+                pikachu.rect.centerx = pikachu.rect.centerx - 10
+            if event.key == pygame.K_SPACE:
+                pikachu.rect = pikachu.rect.move(pikachu.speed)
+                pikachu.speed[1] = pikachu.speed[1] - 5
+                if pikachu.rect.top == 360:
+                    pikachu.speed[1] = pikachu.speed[1] + 10
+                    if pikachu.rect.bottom == 380:
+                        pikachu.speed[1] = pikachu.speed[1] - 5
 
     animate(group)
 
@@ -105,9 +139,12 @@ while True:
     for ball in group:
         if pygame.sprite.collide_rect(joohanball, ball):
             ball.conflict()
+            c = c - 1
 
             if ball.isEnd():
                 group.remove(ball)
 
             joohanball.speed[0] = - joohanball.speed[0]
             joohanball.speed[1] = - joohanball.speed[1]
+            if c == 0:
+                c = ballgroup(group)
