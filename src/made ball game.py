@@ -254,3 +254,4 @@ while True:
             joohan.speed[1] = - joohan.speed[1]
             if c == 0:
                 c = ballgroup(group)
+# 기능 추가 완료
